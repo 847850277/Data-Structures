@@ -7,23 +7,23 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-public class BTree {
+public class BTree1 {
 
     private int n;					// 参数n,表明每个节点最多存放n个查找键，n+1个指针
     private int min_leafNode_keyNumber;    		// = (n+1)/2;		//叶节点最少(n+1)/2向下取整 个查找键
     private int min_interiorNode_pointNumber;  	// = ( (n+1)%2 == 0 ? (n+1)/2 : (n+1)/2+1 ); //非叶节点最少(n+1)/2向上取整 个指针
 
     private int rootId;			//如果只有一个块，则root为叶子节点，否则为内部节点
-    private List<Node> listTreeNode;
+    private List<Node1> listTreeNode;
 
     private List<Integer> listEmptyBlockId;		//保存已删除的块的Id
 
-    public BTree(int n) {
+    public BTree1(int n) {
         this.n=n;
         this.min_leafNode_keyNumber = (n+1)/2;
         this.min_interiorNode_pointNumber =( (n+1)%2 == 0 ? (n+1)/2 : (n+1)/2+1 );
-        listTreeNode = new ArrayList<Node>();
-        LeafNode firstNode = new LeafNode();
+        listTreeNode = new ArrayList<Node1>();
+        LeafNode1 firstNode = new LeafNode1();
         firstNode.setId(0);
         listTreeNode.add(firstNode);	//初始化BTree只有一个空节点
         rootId=0;
@@ -34,15 +34,15 @@ public class BTree {
 
     //查找key对应的value，没有相应的key则返回-1
     public int searchKey(int rootId, int key){				//这里考虑了树的高度>=1,和0两种情况。//如果只有一个块，则root为叶子节点，否则为根节点
-        Node root = listTreeNode.get(rootId);		//读取每一个块
-        if(root instanceof LeafNode){						//如果是叶子节点的话就直接查找key
-            int res = ((LeafNode) root).getValueOfKey(key); //res要么是-1，要么是value
+        Node1 root = listTreeNode.get(rootId);		//读取每一个块
+        if(root instanceof LeafNode1){						//如果是叶子节点的话就直接查找key
+            int res = ((LeafNode1) root).getValueOfKey(key); //res要么是-1，要么是value
             if(res == -1){
                 System.out.println("The key "+key+" is not exists.");
             }
             return res;
         }else{												//如果是非叶子节点的话，递归查找叶子节点
-            int childId = ((InteriorNode) root).getChildNodeId(key);
+            int childId = ((InteriorNode1) root).getChildNodeId(key);
             return searchKey(childId, key);
         }
     }
@@ -50,17 +50,17 @@ public class BTree {
     //范围查找，返回[fromKey, toKey]对应的[fromValue, toValue]
     public List<Integer> searchRange(int fromKey, int toKey){
         List<Integer> listValue = new ArrayList<Integer>();
-        LeafNode fromNode = findAimNode(rootId, fromKey);
-        LeafNode toNode = findAimNode(rootId, toKey);
+        LeafNode1 fromNode = findAimNode(rootId, fromKey);
+        LeafNode1 toNode = findAimNode(rootId, toKey);
         int count = 0;	//叶子节点个数
 
         //从fromNode到toNode之前Node的所有value加入到listValue
-        LeafNode tempNode = fromNode;
+        LeafNode1 tempNode = fromNode;
         while(tempNode != toNode){
             for(int value: tempNode.getListValues()){
                 listValue.add(value);
             }
-            tempNode = (LeafNode) listTreeNode.get(tempNode.getNextNodePoint());
+            tempNode = (LeafNode1) listTreeNode.get(tempNode.getNextNodePoint());
             count++;
         }
 
@@ -91,20 +91,20 @@ public class BTree {
 
     //往BTree中插入新键时，找到待插入键的目标块，即叶子节点。
     //此方法也可以作为删除时查找到要删除的key所在的叶子节点
-    public LeafNode findAimNode(int rootId, int newKey){
-        Node root = listTreeNode.get(rootId);
-        if(root instanceof LeafNode){
-            return (LeafNode) root;
+    public LeafNode1 findAimNode(int rootId, int newKey){
+        Node1 root = listTreeNode.get(rootId);
+        if(root instanceof LeafNode1){
+            return (LeafNode1) root;
         }
         else{
-            int childId = ((InteriorNode)root).getChildNodeId(newKey);
+            int childId = ((InteriorNode1)root).getChildNodeId(newKey);
             return findAimNode(childId, newKey);
         }
     }
 
     //从BTree中删除一个键，与insert互为逆过程。返回-1表明没有要删除的key，否则返回1删除成功
     public int delete(int key){
-        LeafNode aimNode = findAimNode(rootId, key);
+        LeafNode1 aimNode = findAimNode(rootId, key);
         int position = aimNode.getKeyIndex(key);	//要删除的key的下标索引
         if(position == -1){
             System.out.println("The key "+key+" is not exists.");
@@ -117,7 +117,7 @@ public class BTree {
             aimNode.getListValues().remove(position);
             if(aimNode.getId() == rootId && aimNode.getListKeys().size()==0){	//如果这棵树被删完了，那么从新开始rootId
                 rootId = listTreeNode.size();
-                listTreeNode.add(new LeafNode());
+                listTreeNode.add(new LeafNode1());
             }
             //TODO 把数据库中对应的记录删除？ 在外部做吧。 向数据库中插入删除操作在外部做
         }else{		//keyNumber<=min_leafNode_keyNumber，删除之后试图与前后兄弟节点合并
@@ -125,21 +125,21 @@ public class BTree {
             aimNode.getListKeys().remove(position);
             aimNode.getListValues().remove(position);
 
-            InteriorNode parentNode = (InteriorNode) listTreeNode.get(aimNode.getParentPoint());
+            InteriorNode1 parentNode = (InteriorNode1) listTreeNode.get(aimNode.getParentPoint());
             int preBrotherIndex = parentNode.getListPointers().indexOf(aimNode.getId())-1;
             int nextBrotherIndex = parentNode.getListPointers().indexOf(aimNode.getId())+1;
 
-            LeafNode preBrotherNode = null;
-            LeafNode nextBrotherNode = null;
+            LeafNode1 preBrotherNode = null;
+            LeafNode1 nextBrotherNode = null;
             int preBrotherSize = 0; 	//= ((LeafNode)listTreeNode.get(preBrotherId)).getListKeys().size();
             int nextBrotherSize = 0;	// = ((LeafNode)listTreeNode.get(nextBrotherId)).getListKeys().size();
 
             if(preBrotherIndex != -1){	//存在前兄弟节点
-                preBrotherNode = (LeafNode) listTreeNode.get(parentNode.getListPointers().get(preBrotherIndex));
+                preBrotherNode = (LeafNode1) listTreeNode.get(parentNode.getListPointers().get(preBrotherIndex));
                 preBrotherSize = preBrotherNode.getListKeys().size();
             }
             if(nextBrotherIndex != parentNode.getListPointers().size()){	//存在后兄弟节点
-                nextBrotherNode = (LeafNode) listTreeNode.get(parentNode.getListPointers().get(nextBrotherIndex));
+                nextBrotherNode = (LeafNode1) listTreeNode.get(parentNode.getListPointers().get(nextBrotherIndex));
                 nextBrotherSize = nextBrotherNode.getListKeys().size();
             }
 
@@ -207,12 +207,12 @@ public class BTree {
 
                 //把parentNode的前兄弟节点的最后一个子节点的nextNodePoint指向nextBrotherNode
                 if(parentNode.getParentPoint() != null ){	//如果parentNode有父节点
-                    int preParentIndex = ((InteriorNode)listTreeNode.get(parentNode.getParentPoint())).getListPointers().indexOf(parentNode.getId())-1;
+                    int preParentIndex = ((InteriorNode1)listTreeNode.get(parentNode.getParentPoint())).getListPointers().indexOf(parentNode.getId())-1;
                     if(preParentIndex != -1){				//而且有前兄弟节点
-                        int preParentId = ((InteriorNode)listTreeNode.get(parentNode.getParentPoint())).getListPointers().get(preParentIndex);
-                        int preParentPointSize = ((InteriorNode)listTreeNode.get(preParentId)).getListPointers().size();
-                        int preParentLastChildId = ((InteriorNode)listTreeNode.get(preParentId)).getListPointers().get(preParentPointSize-1);
-                        ((LeafNode)listTreeNode.get(preParentLastChildId)).setNextNodePoint(nextBrotherNode.getId());
+                        int preParentId = ((InteriorNode1)listTreeNode.get(parentNode.getParentPoint())).getListPointers().get(preParentIndex);
+                        int preParentPointSize = ((InteriorNode1)listTreeNode.get(preParentId)).getListPointers().size();
+                        int preParentLastChildId = ((InteriorNode1)listTreeNode.get(preParentId)).getListPointers().get(preParentPointSize-1);
+                        ((LeafNode1)listTreeNode.get(preParentLastChildId)).setNextNodePoint(nextBrotherNode.getId());
 
                     }
                 }
@@ -227,10 +227,10 @@ public class BTree {
     }
 
     //aimNode删除之后调用的此方法
-    public void adjustTreeAfterDelete(InteriorNode aimNode){	//递归向上调整非叶节点
+    public void adjustTreeAfterDelete(InteriorNode1 aimNode){	//递归向上调整非叶节点
         if(aimNode.getParentPoint() == null){	//aimNode是根节点
             if(aimNode.getListPointers().size() == 1){	//根节点只剩一个指针，将其子节点设为新的根节点后，删除该根节点，
-                Node newRootNode = listTreeNode.get(aimNode.getListPointers().get(0));
+                Node1 newRootNode = listTreeNode.get(aimNode.getListPointers().get(0));
                 newRootNode.setParentPoint(null);
                 rootId = newRootNode.getId();
                 aimNode.getListPointers().clear();
@@ -249,30 +249,30 @@ public class BTree {
             }else{										//否则要调整该层及以上
 
                 //尝试从兄弟节点中取来一个
-                InteriorNode parentNode = (InteriorNode) listTreeNode.get(aimNode.getParentPoint());
+                InteriorNode1 parentNode = (InteriorNode1) listTreeNode.get(aimNode.getParentPoint());
                 int preBrotherIndex = parentNode.getListPointers().indexOf(aimNode.getId())-1;
                 int nextBrotherIndex = parentNode.getListPointers().indexOf(aimNode.getId())+1;
 
-                InteriorNode preBrotherNode = null;
-                InteriorNode nextBrotherNode = null;
+                InteriorNode1 preBrotherNode = null;
+                InteriorNode1 nextBrotherNode = null;
                 int preBrotherSize = 0; 	//= ((InteriorNode)listTreeNode.get(preBrotherId)).getListPointers().size();
                 int nextBrotherSize = 0;	// = ((InteriorNode)listTreeNode.get(nextBrotherId)).getListPointers().size();
                 if(preBrotherIndex != -1){  //存在前兄弟节点
-                    preBrotherNode = (InteriorNode) listTreeNode.get(parentNode.getListPointers().get(preBrotherIndex));
+                    preBrotherNode = (InteriorNode1) listTreeNode.get(parentNode.getListPointers().get(preBrotherIndex));
                     preBrotherSize = preBrotherNode.getListPointers().size();
                 }
                 if(nextBrotherIndex != parentNode.getListPointers().size()){	//存在后兄弟节点
-                    nextBrotherNode = (InteriorNode) listTreeNode.get(parentNode.getListPointers().get(nextBrotherIndex));
+                    nextBrotherNode = (InteriorNode1) listTreeNode.get(parentNode.getListPointers().get(nextBrotherIndex));
                     nextBrotherSize = nextBrotherNode.getListPointers().size();
                 }
 
                 if(preBrotherIndex != -1 && preBrotherSize > min_interiorNode_pointNumber ){	//如果存在前兄弟节点，且它的point数大于最小的要求
                     //将aimNode的子树的第一个叶子节点的第一个key添加到aimNode的最前面
-                    Node aimLeafNode = aimNode;
-                    while(aimLeafNode instanceof InteriorNode){
-                        aimLeafNode = listTreeNode.get( ((InteriorNode)aimLeafNode).getListPointers().get(0));
+                    Node1 aimLeafNode = aimNode;
+                    while(aimLeafNode instanceof InteriorNode1){
+                        aimLeafNode = listTreeNode.get( ((InteriorNode1)aimLeafNode).getListPointers().get(0));
                     }
-                    int aimLeafNodeKey = ((LeafNode)aimLeafNode).getListKeys().get(0);
+                    int aimLeafNodeKey = ((LeafNode1)aimLeafNode).getListKeys().get(0);
                     aimNode.getListKeys().add(0, aimLeafNodeKey);
 
                     //将前兄弟节点最后一个point移到aimNode中的最前面，删除preBrotherNode的最后一个key
@@ -285,10 +285,10 @@ public class BTree {
 
                     //将父节点中原来指向aimNode的指针前面的那个key变为aimNode子树的第一个叶子节点的第一个key
                     aimLeafNode = aimNode;
-                    while(aimLeafNode instanceof InteriorNode){
-                        aimLeafNode = listTreeNode.get( ((InteriorNode)aimLeafNode).getListPointers().get(0));
+                    while(aimLeafNode instanceof InteriorNode1){
+                        aimLeafNode = listTreeNode.get( ((InteriorNode1)aimLeafNode).getListPointers().get(0));
                     }
-                    aimLeafNodeKey = ((LeafNode)aimLeafNode).getListKeys().get(0);
+                    aimLeafNodeKey = ((LeafNode1)aimLeafNode).getListKeys().get(0);
                     int aimIndex = parentNode.getListPointers().indexOf(aimNode.getId()); 	//parentNode中指向aimNode的指针的下标索引
                     parentNode.getListKeys().set(aimIndex-1, aimLeafNodeKey);
 
@@ -298,11 +298,11 @@ public class BTree {
                     aimNode.getListPointers().add(nextBrotherNode.getListPointers().get(0));
 
                     //将aimNode的最后一个key替换为    nextBrotherNode子树的第一个叶子节点的第一个key
-                    Node nextBrotherLeafNode = nextBrotherNode;
-                    while(nextBrotherLeafNode instanceof InteriorNode){
-                        nextBrotherLeafNode = listTreeNode.get(((InteriorNode)nextBrotherLeafNode).getListPointers().get(0));
+                    Node1 nextBrotherLeafNode = nextBrotherNode;
+                    while(nextBrotherLeafNode instanceof InteriorNode1){
+                        nextBrotherLeafNode = listTreeNode.get(((InteriorNode1)nextBrotherLeafNode).getListPointers().get(0));
                     }
-                    int nextBroLeafNodeKey = ((LeafNode)nextBrotherLeafNode).getListKeys().get(0);
+                    int nextBroLeafNodeKey = ((LeafNode1)nextBrotherLeafNode).getListKeys().get(0);
                     aimNode.getListKeys().set(aimNode.getListKeys().size()-1, nextBroLeafNodeKey);
 
                     //删除nextBrotherNode的第一个key和point
@@ -314,32 +314,32 @@ public class BTree {
 
                     //将父节点中原来指向nextBrotherNode的指针前面的那个key变为nextBrotherNode子树的第一个叶子节点的第一个key
                     nextBrotherLeafNode = nextBrotherNode;
-                    while(nextBrotherLeafNode instanceof InteriorNode){
-                        nextBrotherLeafNode = listTreeNode.get(((InteriorNode)nextBrotherLeafNode).getListPointers().get(0));
+                    while(nextBrotherLeafNode instanceof InteriorNode1){
+                        nextBrotherLeafNode = listTreeNode.get(((InteriorNode1)nextBrotherLeafNode).getListPointers().get(0));
                     }
-                    nextBroLeafNodeKey = ((LeafNode)nextBrotherLeafNode).getListKeys().get(0);
+                    nextBroLeafNodeKey = ((LeafNode1)nextBrotherLeafNode).getListKeys().get(0);
                     int pointToNextBroIndex = parentNode.getListPointers().indexOf(nextBrotherNode.getId());
                     parentNode.getListKeys().set(pointToNextBroIndex-1, nextBroLeafNodeKey);
 
 
                     if(preBrotherIndex != -1){ 	//如果aimNode不是第一个节点
                         //将父节点中原来指向aimNode的指针前面的那个key变为aimNode子树的第一个叶子节点的第一个key
-                        Node aimLeafNode = aimNode;
-                        while(aimLeafNode instanceof InteriorNode){
-                            aimLeafNode = listTreeNode.get( ((InteriorNode)aimLeafNode).getListPointers().get(0));
+                        Node1 aimLeafNode = aimNode;
+                        while(aimLeafNode instanceof InteriorNode1){
+                            aimLeafNode = listTreeNode.get( ((InteriorNode1)aimLeafNode).getListPointers().get(0));
                         }
-                        int aimLeafNodeKey = ((LeafNode)aimLeafNode).getListKeys().get(0);
+                        int aimLeafNodeKey = ((LeafNode1)aimLeafNode).getListKeys().get(0);
                         int aimIndex = parentNode.getListPointers().indexOf(aimNode.getId()); 	//parentNode中指向aimNode的指针的下标索引
                         parentNode.getListKeys().set(aimIndex-1, aimLeafNodeKey);
                     }
 
                 }else if(preBrotherIndex != -1){	//不能借，则合并           //如果存在前兄弟节点，则一定可以与之合并
                     //将aimNode子树的第一个叶子节点的第一个key添加到preBrotherNode的最后面
-                    Node aimLeafNode = aimNode;
-                    while(aimLeafNode instanceof InteriorNode){
-                        aimLeafNode = listTreeNode.get( ((InteriorNode)aimLeafNode).getListPointers().get(0));
+                    Node1 aimLeafNode = aimNode;
+                    while(aimLeafNode instanceof InteriorNode1){
+                        aimLeafNode = listTreeNode.get( ((InteriorNode1)aimLeafNode).getListPointers().get(0));
                     }
-                    int aimLeafNodeKey = ((LeafNode)aimLeafNode).getListKeys().get(0);
+                    int aimLeafNodeKey = ((LeafNode1)aimLeafNode).getListKeys().get(0);
                     preBrotherNode.getListKeys().add(aimLeafNodeKey);
 
                     //将aimNode中剩余的key和point移到preBrotherNode的最后面（从前往后移）。同时更新aimNode的子节点的parentPoint
@@ -368,11 +368,11 @@ public class BTree {
                 }else{			//否则，aimNode一定是parentNode的第一个子节点，且一定能向后合并
                     //将parentNode中指向nextBrotherNode的指针前面的那个key添加到nextBrotherNode的最前面
                     //将nextBrotherNode子树的第一个叶子节点的第一个key添加到nextBrotherNode的最前面
-                    Node nextBrotherLeafNode = nextBrotherNode;
-                    while(nextBrotherLeafNode instanceof InteriorNode){
-                        nextBrotherLeafNode = listTreeNode.get(((InteriorNode)nextBrotherLeafNode).getListPointers().get(0));
+                    Node1 nextBrotherLeafNode = nextBrotherNode;
+                    while(nextBrotherLeafNode instanceof InteriorNode1){
+                        nextBrotherLeafNode = listTreeNode.get(((InteriorNode1)nextBrotherLeafNode).getListPointers().get(0));
                     }
-                    int nextBroLeafNodeKey = ((LeafNode)nextBrotherLeafNode).getListKeys().get(0);
+                    int nextBroLeafNodeKey = ((LeafNode1)nextBrotherLeafNode).getListKeys().get(0);
                     nextBrotherNode.getListKeys().add(0, nextBroLeafNodeKey);
 
                     //将aimNode中剩余的key和point移到nextBrotherNode的最前面，（从后往前移）。同时更新nextBrotherNode新进入的子节点的parentPoint为nextBrotherNode
@@ -408,14 +408,14 @@ public class BTree {
 
     //向树中插入一个新的键-值对
     public void insert(int newKey, int value){
-        LeafNode aimNode = findAimNode(rootId, newKey);
+        LeafNode1 aimNode = findAimNode(rootId, newKey);
         int length = aimNode.getListKeys().size();
         int position = aimNode.getInsertPosition(newKey);	//待插入的位置
         if(length<n){		//叶子节点有空间
             aimNode.getListKeys().add(position, newKey);
             aimNode.getListValues().add(position, value);
         }else{				//叶子节点已满，会溢出，则新建一个叶子节点newNode
-            LeafNode newNode = new LeafNode();
+            LeafNode1 newNode = new LeafNode1();
             newNode.setId(listTreeNode.size());
             newNode.setNextNodePoint(aimNode.getNextNodePoint());
             aimNode.setNextNodePoint(newNode.getId());
@@ -451,10 +451,10 @@ public class BTree {
     }
 
     //插入一个新键后需要调整BTree
-    public void adjustTreeAfterInsert(Node aimNode, Node newNode){
-        InteriorNode parent = null;				//parent一定是InteriorNode
+    public void adjustTreeAfterInsert(Node1 aimNode, Node1 newNode){
+        InteriorNode1 parent = null;				//parent一定是InteriorNode
         if(aimNode.getParentPoint()==null){		//aimNode是根节点，根节点分裂成了两个，则需要增加一个新根节点parent
-            parent = new InteriorNode();
+            parent = new InteriorNode1();
             parent.setId(listTreeNode.size());
             rootId = parent.getId();			//设置根节点为新建的节点
             parent.setParentPoint(null);
@@ -462,16 +462,16 @@ public class BTree {
             aimNode.setParentPoint(parent.getId());
             listTreeNode.add(parent);
         }else {									//否则parent不是根节点，取为aimNode的父节点
-            parent = (InteriorNode) listTreeNode.get(aimNode.getParentPoint());
+            parent = (InteriorNode1) listTreeNode.get(aimNode.getParentPoint());
         }
 
         //为获取parent节点需要插入的键，需要找到新的节点对应的最底层的第一个叶子节点的第一个键。
         //新子树总是位于原子树的右边，新子树不是parent的第一颗子树,因此可以这样查找parent待插入的键
-        Node newLeafNode = newNode;
-        while(newLeafNode instanceof InteriorNode){		//找到该新子树对应的第一个叶子节点
-            newLeafNode = listTreeNode.get( ((InteriorNode)newLeafNode).getListPointers().get(0) );
+        Node1 newLeafNode = newNode;
+        while(newLeafNode instanceof InteriorNode1){		//找到该新子树对应的第一个叶子节点
+            newLeafNode = listTreeNode.get( ((InteriorNode1)newLeafNode).getListPointers().get(0) );
         }
-        int newKey = ((LeafNode)newLeafNode).getListKeys().get(0);  //新子树的第一个叶子节点的第一个键
+        int newKey = ((LeafNode1)newLeafNode).getListKeys().get(0);  //新子树的第一个叶子节点的第一个键
         int position = parent.getInsertPosition(newKey);			//parent的中待插入新建的位置
 
         if(parent.getListKeys().size()<n){   	//父节点未满,插入新键和指针
@@ -482,7 +482,7 @@ public class BTree {
             return ;
 
         }else{    		//父节点已满，需要再增加一个指针，该父节点分裂为两个节点，重新向上调整Tree
-            InteriorNode newParentNode = new InteriorNode();
+            InteriorNode1 newParentNode = new InteriorNode1();
             newParentNode.setId(listTreeNode.size());
             int length = parent.getListKeys().size();
 
@@ -562,14 +562,14 @@ public class BTree {
         System.out.print(" ,  root Id: "+rootId);
         System.out.print(" ,  nodes number: "+ getBTreeNodeNumber());
         System.out.println(" ,  height: "+getBTreeHeight()+" )");
-        Node rootNode = listTreeNode.get(rootId);
-        Queue<Node> queue = new LinkedList<Node>();
+        Node1 rootNode = listTreeNode.get(rootId);
+        Queue<Node1> queue = new LinkedList<Node1>();
         queue.offer(rootNode);
         while(!queue.isEmpty()){
-            Node node = queue.poll();
+            Node1 node = queue.poll();
             printNodeInformation(node);
-            if(node instanceof InteriorNode){
-                for(int point: ((InteriorNode)node).getListPointers()){
+            if(node instanceof InteriorNode1){
+                for(int point: ((InteriorNode1)node).getListPointers()){
                     queue.offer(listTreeNode.get(point));
                 }
             }
@@ -585,7 +585,7 @@ public class BTree {
         System.out.print(" ,  root Id: "+rootId);
         System.out.print(" ,  nodes number: "+ getBTreeNodeNumber());
         System.out.println(" ,  height: "+getBTreeHeight()+" )");
-        for(Node node: listTreeNode){
+        for(Node1 node: listTreeNode){
             if(listEmptyBlockId.contains(node.getId())){
                 continue;
             }
@@ -599,49 +599,49 @@ public class BTree {
     //按顺序输出树的所有叶子节点
     public void printAllLeafNode(){
         System.out.println("\n-------------LeafNodes of BTree is:");
-        Node leafNode = listTreeNode.get(rootId);
-        while(leafNode instanceof InteriorNode){
-            leafNode = listTreeNode.get(((InteriorNode)leafNode).getListPointers().get(0));
+        Node1 leafNode = listTreeNode.get(rootId);
+        while(leafNode instanceof InteriorNode1){
+            leafNode = listTreeNode.get(((InteriorNode1)leafNode).getListPointers().get(0));
         }
-        LeafNode node;
-        for(node = (LeafNode) leafNode; node.getNextNodePoint()!=null; node=(LeafNode) listTreeNode.get(node.getNextNodePoint())){
+        LeafNode1 node;
+        for(node = (LeafNode1) leafNode; node.getNextNodePoint()!=null; node=(LeafNode1) listTreeNode.get(node.getNextNodePoint())){
             printNodeInformation(node);
         }
         printNodeInformation(node);
     }
 
     //输出一个节点的信息
-    public void printNodeInformation(Node node){
-        if ( node instanceof InteriorNode){
+    public void printNodeInformation(Node1 node){
+        if ( node instanceof InteriorNode1){
             System.out.print("InteNode id: "+node.getId()+"  ,  Keys: (");
-            for(int i: ((InteriorNode) node).getListKeys()){
+            for(int i: ((InteriorNode1) node).getListKeys()){
                 System.out.print(i+" ");
             }
             System.out.print(")  ,  Pointers: (");
-            for(int i : ((InteriorNode) node).getListPointers()){
+            for(int i : ((InteriorNode1) node).getListPointers()){
                 System.out.print(i+" ");
             }
-            System.out.println(")  ,  PointNum: "+((InteriorNode) node).getListPointers().size());
+            System.out.println(")  ,  PointNum: "+((InteriorNode1) node).getListPointers().size());
         }else{
             System.out.print("LeafNode id: "+node.getId()+"  ,  Keys: (");
-            for(int i: ((LeafNode) node).getListKeys()){
+            for(int i: ((LeafNode1) node).getListKeys()){
                 System.out.print(i+" ");
             }
             System.out.print(")  ,  Values: (");
-            for(int i: ((LeafNode) node).getListValues()){
+            for(int i: ((LeafNode1) node).getListValues()){
                 System.out.print(i+" ");
             }
-            System.out.println(")  ,  NextId: "+((LeafNode) node).getNextNodePoint());
+            System.out.println(")  ,  NextId: "+((LeafNode1) node).getNextNodePoint());
         }
     }
 
     //求树的高度
     public int getBTreeHeight(){
         int height = 0;
-        Node leafNode = listTreeNode.get(rootId);
-        while(leafNode instanceof InteriorNode){
+        Node1 leafNode = listTreeNode.get(rootId);
+        while(leafNode instanceof InteriorNode1){
             height++;
-            leafNode = listTreeNode.get(((InteriorNode)leafNode).getListPointers().get(0));
+            leafNode = listTreeNode.get(((InteriorNode1)leafNode).getListPointers().get(0));
         }
         return height+1;
     }
@@ -685,11 +685,11 @@ public class BTree {
         this.rootId = rootId;
     }
 
-    public List<Node> getListTreeNode() {
+    public List<Node1> getListTreeNode() {
         return listTreeNode;
     }
 
-    public void setListTreeNode(List<Node> listTreeNode) {
+    public void setListTreeNode(List<Node1> listTreeNode) {
         this.listTreeNode = listTreeNode;
     }
 

@@ -6,13 +6,13 @@ import java.util.List;
  * @date 2021-10-12 17:46
  * 内部节点
  **/
-public class InteriorNode extends Node{
+public class InteriorNode1 extends Node1 {
 
     private List<Integer> listKeys;			//存放查找键
     private List<Integer> listPointers;		//存放指向下一层Node的指针
 
 
-    public InteriorNode() {
+    public InteriorNode1() {
         listKeys = new ArrayList<Integer>();
         listPointers = new ArrayList<Integer>();
         setParentPoint(null);

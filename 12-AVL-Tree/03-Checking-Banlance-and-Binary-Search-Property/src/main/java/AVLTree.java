@@ -73,7 +73,7 @@ public class AVLTree<K extends Comparable<K>, V> {
         if (null == node) {
             return true;
         }
-        var balanceFactor = getBalanceFactor(node);
+        Integer balanceFactor = getBalanceFactor(node);
         if (Math.abs(balanceFactor) > 1) {
             return false;
         }

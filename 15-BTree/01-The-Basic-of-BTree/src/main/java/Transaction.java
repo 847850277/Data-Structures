@@ -8,7 +8,6 @@
 import com.google.common.primitives.Ints;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -16,12 +15,13 @@ public class Transaction {
 
 
     int n = 4;			//bTree的参数，可以设置
-    int[]  DB = {5,13,9,12,16,7,11,23,2,91, 10,6, 17,24, 25, 50,26,1};	//数据库，只保存了键
+    int[]  DB = {5,13,9,12,16,7,11,23,2,91, 10};	//数据库，只保存了键
+    //int[]  DB = {5,13,9,12,16,7,11,23,2,91, 10,6, 17,24, 25, 50,26,1};	//数据库，只保存了键
     List<Integer> dbList = new ArrayList<Integer>();					//用list保存的数据库，只保存了键
     int recordNum = 20;			//模拟数据库中的初始记录数
     int blockSize = 3;	//一个块可以存储多少条记录
     int blockNum = (recordNum%blockSize==0 ? recordNum/blockSize : recordNum/blockSize+1);	//存储数据库用到多少块
-    BTree bTree;
+    BTree1 bTree;
 
     List<Integer> listDeleteIndex = new ArrayList<Integer>();  //保存数据库dbList中已删除元素的下标-->没用到
 
@@ -56,7 +56,7 @@ public class Transaction {
 
     //对数据库dbList建立BTree
     public void buidTree(){
-        bTree = new BTree(n);
+        bTree = new BTree1(n);
         bTree.buidTree(dbList);
 
     }

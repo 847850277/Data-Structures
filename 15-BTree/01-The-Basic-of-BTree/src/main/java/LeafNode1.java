@@ -6,14 +6,14 @@ import java.util.List;
  * @date 2021-10-12 17:45
  * 叶子节点对象
  **/
-public class LeafNode extends Node{
+public class LeafNode1 extends Node1 {
 
     private List<Integer> listKeys;		//存放查找键
     private List<Integer> listValues;	//存放查找键对应的记录地址
 
     private Integer nextNodePoint;		//指向下一个叶子节点的指针
 
-    public LeafNode() {
+    public LeafNode1() {
         listKeys = new ArrayList<Integer>();
         listValues = new ArrayList<Integer>();
         nextNodePoint = null;
